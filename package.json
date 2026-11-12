@@ -1,0 +1,22 @@
+{
+  "name": "bpy-rag-node",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "chat": "node src/cli/chat.ts",
+    "ingest": "node src/cli/ingest.ts",
+    "typecheck": "tsc"
+  },
+  "keywords": [],
+  "type": "module",
+  "dependencies": {
+    "@google/genai": "^3.2.0",
+    "dotenv": "^18.0.10",
+    "pdf-parse": "^2.4.5",
+    "vectra": "^0.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}
