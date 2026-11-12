@@ -8,8 +8,9 @@ export async function ensureIndex(): Promise<void> {
   if (!(await index.isIndexCreated())) await index.createIndex();
 }
 
-export async function countChunks(): Promise<number> {
-  return (await index.listItems()).length;
+export async function countChunks(): Promise<ChunkMetadata[]> {
+  const items = await index.listItems<ChunkMetadata>();
+  return items.map((item) => item.metadata);
 }
 
 /** Hash file yang sudah ter-index, per nama file sumber. */

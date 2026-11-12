@@ -49,7 +49,7 @@ export async function ingestFolder(folderPath: string = config.paths.docs): Prom
   const total = await countChunks();
   console.log(
     changed > 0
-      ? `Index diperbarui (${total} chunks).\n`
-      : `Index dokumen sudah up-to-date (${total} chunks).\n`,
+      ? `Index diperbarui (${total.length} chunks).\n`
+      : `Index dokumen sudah up-to-date (${total.length} chunks).\n`,
   );
 }

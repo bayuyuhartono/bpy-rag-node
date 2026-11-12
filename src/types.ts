@@ -10,4 +10,15 @@ export type RetrievedChunk = ChunkMetadata & { score: number };
 
 export type RagAnswer =
   | { found: false }
-  | { found: true; answer: string; sources: RetrievedChunk[] };
+  | { 
+    found: true; 
+    answer: string; 
+    sources: RetrievedChunk[];
+    rewrittenQuery: string;
+  };
+  
+  
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}

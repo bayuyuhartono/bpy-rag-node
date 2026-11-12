@@ -7,7 +7,7 @@ type GroqResponse = {
   error?: { message: string };
 };
 
-export async function chatCompletion(messages: ChatMessage[]): Promise<string> {
+export async function chatCompletion(messages: ChatMessage[], temperature: number): Promise<string> {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
