@@ -13,7 +13,7 @@ export async function getAllChunks(): Promise<ChunkMetadata[]> {
   return items.map((item) => item.metadata);
 }
 
-/** Hash file yang sudah ter-index, per nama file sumber. */
+/** Hash of each indexed file, keyed by source file name. */
 export async function indexedFiles(): Promise<Map<string, string | undefined>> {
   const files = new Map<string, string | undefined>();
   for (const item of await index.listItems<ChunkMetadata>()) {
@@ -22,7 +22,7 @@ export async function indexedFiles(): Promise<Map<string, string | undefined>> {
   return files;
 }
 
-/** Ganti semua chunk milik `source` dengan chunk baru (dalam satu kali tulis ke disk). */
+/** Replace all chunks of `source` with new ones (in a single disk write). */
 export async function replaceSource(
   source: string,
   items: { vector: number[]; metadata: ChunkMetadata }[],

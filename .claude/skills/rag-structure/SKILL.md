@@ -5,7 +5,7 @@ description: File tree, layer boundaries, and coding conventions for this RAG pr
 
 # RAG project structure
 
-Pipeline: **ingest** (docs → chunks → embeddings → index) then **query** (question → embedding → top-K chunks → prompt → LLM answer).
+Pipeline: **ingest** (docs → chunks → embeddings → index) then **query** (question → rewrite with chat history → hybrid search (vector + BM25, fused with RRF) → Jina rerank → top-K chunks → prompt → LLM answer).
 
 ## File tree
 
@@ -14,12 +14,12 @@ data/
 ├── docs/                 # source documents (.pdf, .txt, .md) — never delete
 └── index/index.json      # generated vector index — safe to delete, rebuilt by ingest
 src/
-├── config.ts             # ALL tunables: paths, chunk size/overlap, topK, minScore, models, API keys
-├── types.ts              # shared types: ChunkMetadata, RetrievedChunk, RagAnswer
-├── rag.ts                # askDocs(): retrieve → generate; returns data, never prints
+├── config.ts             # ALL tunables: paths, chunk size/overlap, topK, candidateK, minScore, models, API keys
+├── types.ts              # shared types: ChunkMetadata, RetrievedChunk, RagAnswer, ChatMessage
+├── rag.ts                # askDocs(): rewrite query → retrieve → generate; returns data, never prints
 ├── clients/              # thin wrappers around external APIs, no business logic
 │   ├── gemini.ts         # GoogleGenAI instance
-│   └── groq.ts           # chatCompletion(messages) via fetch
+│   └── groq.ts           # chatCompletion(messages, temperature) via fetch
 ├── ingestion/            # phase 1: documents → index
 │   ├── loaders.ts        # extension → Loader map (file buffer → text)
 │   ├── chunker.ts        # chunkText(): sentence-based, size/overlap from config
@@ -27,10 +27,12 @@ src/
 ├── retrieval/            # phase 2a: find relevant chunks
 │   ├── embedder.ts       # embed(), embedMany() (batched)
 │   ├── vectorStore.ts    # the ONLY file that touches vectra/LocalIndex
-│   └── retriever.ts      # retrieve(): embed question → query topK → filter by minScore
+│   ├── bm25.ts           # searchBM25() keyword search + reciprocalRankFusion()
+│   ├── reranker.ts       # rerankChunks(): Jina cross-encoder via fetch, falls back to input order
+│   └── retriever.ts      # retrieve(): vector (candidateK, ≥ minScore) + BM25 → RRF → rerank → topK
 ├── generation/           # phase 2b: chunks → answer
 │   ├── prompts.ts        # prompt templates (pure functions returning strings)
-│   └── generator.ts      # generateAnswer(): build prompt → call LLM client
+│   └── generator.ts      # rewriteQuery() (standalone question from history), generateAnswer()
 └── cli/                  # entry points; the only place that does console I/O
     ├── chat.ts           # npm run chat
     └── ingest.ts         # npm run ingest
@@ -47,7 +49,10 @@ src/
 | Swap embedding model | `retrieval/embedder.ts` + `config.embedding` (requires re-index) |
 | Swap vector DB (pgvector, Qdrant, …) | rewrite `retrieval/vectorStore.ts` only, keep its exported functions |
 | New prompt or prompt tweak | `generation/prompts.ts` |
-| Reranking, hybrid search, query rewriting | `retrieval/retriever.ts` |
+| Retrieval pipeline order / stages | `retrieval/retriever.ts` |
+| Keyword search or fusion logic | `retrieval/bm25.ts` |
+| Reranker provider or fallback | `retrieval/reranker.ts` |
+| Query rewriting | `generation/generator.ts` + `generation/prompts.ts` |
 | Chat history / multi-turn | `rag.ts` (orchestration) + `prompts.ts` |
 | HTTP API / web UI | new entry folder (e.g. `src/server/`) that calls `askDocs()` |
 | New npm command | file in `src/cli/` + script in `package.json` |
@@ -57,8 +62,8 @@ src/
 
 - Dependencies flow one way: `cli → rag → retrieval/generation → clients/config`. `ingestion` may use `retrieval/embedder` and `retrieval/vectorStore`.
 - Only `cli/` uses `console.log` / readline. Library code returns values or throws `Error`.
-- Only `vectorStore.ts` imports `vectra`. Only `clients/` imports SDKs or calls `fetch` to an API.
-- Read env vars only through `config.keys`.
+- Only `vectorStore.ts` imports `vectra`. Only `clients/` imports SDKs or calls `fetch` to an API (exception: `retrieval/reranker.ts` calls Jina directly and may `console.warn` on fallback).
+- Read env vars only through `config.keys`. `GEMINI_API_KEY` and `GROQ_API_KEY` are required; `JINA_API_KEY` is optional (no key → no rerank).
 
 ## TypeScript conventions
 
@@ -79,6 +84,6 @@ Changing docs in `data/docs/` does NOT need a manual rebuild — ingest re-index
 
 ## Commands
 
-- `npm run chat` — sync index, then interactive Q&A (shows sources + scores)
+- `npm run chat` — sync index, then interactive Q&A with chat memory (shows rewritten query, sources + scores)
 - `npm run ingest` — sync index only
 - `npm run typecheck` — runs `tsc` (`noEmit` is set in tsconfig.json)

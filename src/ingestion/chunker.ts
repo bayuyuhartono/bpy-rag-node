@@ -1,9 +1,9 @@
 import { config } from '../config.ts';
 
 /**
- * Pecah teks per kalimat, lalu gabungkan sampai ~chunkSize karakter.
- * Overlap diambil dari kalimat-kalimat terakhir chunk sebelumnya,
- * jadi tidak ada kata/kalimat yang terpotong di tengah.
+ * Split text into sentences, then merge them up to ~chunkSize characters.
+ * Overlap is taken from the last sentences of the previous chunk,
+ * so no word or sentence is cut in the middle.
  */
 export function chunkText(
   text: string,
@@ -19,14 +19,14 @@ export function chunkText(
   let length = 0;
 
   for (const raw of sentences) {
-    // Kalimat super panjang (mis. tabel PDF) tetap dipotong paksa
+    // Very long sentences (e.g. PDF tables) are still force-split
     const pieces = raw.length > chunkSize ? hardSplit(raw, chunkSize) : [raw];
 
     for (const sentence of pieces) {
       if (length + sentence.length > chunkSize && current.length > 0) {
         chunks.push(current.join('').trim());
 
-        // Bawa kalimat terakhir sebagai overlap
+        // Carry the last sentences over as overlap
         const carry: string[] = [];
         let carryLen = 0;
         for (let i = current.length - 1; i >= 0 && carryLen + current[i].length <= overlap; i--) {

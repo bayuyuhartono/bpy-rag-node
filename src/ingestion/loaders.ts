@@ -23,7 +23,7 @@ export function isSupported(file: string): boolean {
 
 export async function loadFile(filePath: string): Promise<{ buffer: Buffer; text: string }> {
   const loader = loaders[path.extname(filePath).toLowerCase()];
-  if (!loader) throw new Error(`Format file tidak didukung: ${filePath}`);
+  if (!loader) throw new Error(`Unsupported file format: ${filePath}`);
   const buffer = await fs.readFile(filePath);
   return { buffer, text: await loader(buffer) };
 }

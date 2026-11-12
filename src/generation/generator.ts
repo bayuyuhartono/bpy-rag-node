@@ -1,4 +1,5 @@
 import { chatCompletion } from '../clients/groq.ts';
+import { config } from '../config.ts';
 import type { ChatMessage, RetrievedChunk } from '../types.ts';
 import { buildRagPrompt, buildRewritePrompt } from './prompts.ts';
 
@@ -19,5 +20,5 @@ export async function generateAnswer(
   chunks: RetrievedChunk[]
 ): Promise<string> {
   const prompt = buildRagPrompt(question, chunks);
-  return await chatCompletion([{ role: 'user', content: prompt }], 0.2);
+  return await chatCompletion([{ role: 'user', content: prompt }], config.llm.temperature);
 }

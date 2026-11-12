@@ -10,10 +10,10 @@ export async function embedMany(texts: string[]): Promise<number[][]> {
     const res = await gemini.models.embedContent({ model, contents: batch });
     const embeddings = res.embeddings ?? [];
     if (embeddings.length !== batch.length) {
-      throw new Error(`Jumlah embedding (${embeddings.length}) tidak sama dengan input (${batch.length})`);
+      throw new Error(`Embedding count (${embeddings.length}) does not match input count (${batch.length})`);
     }
     for (const e of embeddings) {
-      if (!e.values) throw new Error('Embedding kosong dari Gemini');
+      if (!e.values) throw new Error('Empty embedding from Gemini');
       vectors.push(e.values);
     }
   }

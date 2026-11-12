@@ -17,13 +17,13 @@ export async function chatCompletion(messages: ChatMessage[], temperature: numbe
     body: JSON.stringify({
       model: config.llm.model,
       messages,
-      temperature: config.llm.temperature,
+      temperature,
     }),
   });
 
   const data = (await res.json()) as GroqResponse;
   if (!res.ok || !data.choices?.length) {
-    throw new Error(`Groq ${res.status}: ${data.error?.message ?? 'Gagal memanggil API'}`);
+    throw new Error(`Groq ${res.status}: ${data.error?.message ?? 'API call failed'}`);
   }
   return data.choices[0].message.content;
 }

@@ -22,7 +22,7 @@ export function searchBM25(
   const avgDocLen =
     tokenizedDocs.reduce((sum, tokens) => sum + tokens.length, 0) / documents.length;
 
-  // Hitung Document Frequency (DF) untuk setiap term
+  // Compute document frequency (DF) for each term
   const df = new Map<string, number>();
   for (const tokens of tokenizedDocs) {
     const uniqueTokens = new Set(tokens);
@@ -58,7 +58,7 @@ export function searchBM25(
   return scored.sort((a, b) => b.score - a.score).slice(0, topK);
 }
 
-// Menggabungkan peringkat Vector & BM25 menggunakan Reciprocal Rank Fusion (RRF)
+// Merge vector & BM25 rankings using Reciprocal Rank Fusion (RRF)
 export function reciprocalRankFusion(
   vectorResults: RetrievedChunk[],
   bm25Results: RetrievedChunk[],
@@ -81,7 +81,7 @@ export function reciprocalRankFusion(
     if (existing) {
       existing.rrfScore += score;
     } else {
-      // Jika hanya muncul di BM25, beri skor dasar agar lolos minScore
+      // If it only appears in BM25, give it a base score so it passes minScore
       fused.set(key, { chunk: { ...item, score: 0.7 }, rrfScore: score });
     }
   });

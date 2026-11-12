@@ -9,10 +9,10 @@ import { chunkText } from './chunker.ts';
 import { isSupported, loadFile } from './loaders.ts';
 
 /**
- * Sinkronkan folder dokumen dengan index:
- * - file baru / berubah  -> di-index ulang
- * - file tidak berubah   -> dilewati
- * - file sudah dihapus   -> chunk-nya dibuang dari index
+ * Sync the documents folder with the index:
+ * - new / changed file  -> re-indexed
+ * - unchanged file      -> skipped
+ * - deleted file        -> its chunks are removed from the index
  */
 export async function ingestFolder(folderPath: string = config.paths.docs): Promise<void> {
   await ensureIndex();
@@ -27,7 +27,7 @@ export async function ingestFolder(folderPath: string = config.paths.docs): Prom
     if (indexed.get(file) === fileHash) continue;
 
     const chunks = chunkText(text);
-    console.log(`Memproses "${file}" -> ${chunks.length} chunks...`);
+    console.log(`Processing "${file}" -> ${chunks.length} chunks...`);
 
     const vectors = await embedMany(chunks);
     const items = chunks.map((chunk, i) => ({
@@ -40,7 +40,7 @@ export async function ingestFolder(folderPath: string = config.paths.docs): Prom
 
   for (const source of indexed.keys()) {
     if (!files.includes(source)) {
-      console.log(`Menghapus "${source}" dari index (file sudah tidak ada)...`);
+      console.log(`Removing "${source}" from index (file no longer exists)...`);
       await removeSource(source);
       changed++;
     }
@@ -49,7 +49,7 @@ export async function ingestFolder(folderPath: string = config.paths.docs): Prom
   const total = await getAllChunks();
   console.log(
     changed > 0
-      ? `Index diperbarui (${total.length} chunks).\n`
-      : `Index dokumen sudah up-to-date (${total.length} chunks).\n`,
+      ? `Index updated (${total.length} chunks).\n`
+      : `Document index is up to date (${total.length} chunks).\n`,
   );
 }

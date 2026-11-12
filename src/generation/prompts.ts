@@ -15,7 +15,7 @@ Pertanyaan: ${question}
 
 export function buildRewritePrompt(question: string, history: ChatMessage[]): string {
   const formattedHistory = history
-    .slice(-4) // Ambil 2 pasang tanya-jawab terakhir agar hemat token
+    .slice(-4) // Keep only the last 2 Q&A pairs to save tokens
     .map((m) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`)
     .join('\n');
 

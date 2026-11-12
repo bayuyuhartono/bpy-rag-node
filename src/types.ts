@@ -1,4 +1,4 @@
-// Pakai `type` (bukan interface) supaya kompatibel dengan Record<string, MetadataTypes> milik vectra
+// Use `type` (not interface) so it is compatible with vectra's Record<string, MetadataTypes>
 export type ChunkMetadata = {
   source: string;
   fileHash: string;
