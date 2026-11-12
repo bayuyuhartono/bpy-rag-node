@@ -1,7 +1,7 @@
 import { config } from '../config.ts';
 import type { RetrievedChunk } from '../types.ts';
 import { embed } from './embedder.ts';
-import { query, countChunks } from './vectorStore.ts';
+import { query, getAllChunks } from './vectorStore.ts';
 import { searchBM25, reciprocalRankFusion } from './bm25.ts';
 
 export async function retrieve(question: string): Promise<RetrievedChunk[]> {
@@ -12,7 +12,7 @@ export async function retrieve(question: string): Promise<RetrievedChunk[]> {
     .filter((r) => r.score >= config.retrieval.minScore);
 
   // 2. Jalankan Keyword BM25 Search
-  const allDocs = await countChunks();
+  const allDocs = await getAllChunks();
   const bm25Results = searchBM25(question, allDocs, candidateK);
 
   // 3. Gabungkan dan urutkan ulang dengan RRF

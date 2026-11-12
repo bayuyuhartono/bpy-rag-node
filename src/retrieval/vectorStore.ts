@@ -8,7 +8,7 @@ export async function ensureIndex(): Promise<void> {
   if (!(await index.isIndexCreated())) await index.createIndex();
 }
 
-export async function countChunks(): Promise<ChunkMetadata[]> {
+export async function getAllChunks(): Promise<ChunkMetadata[]> {
   const items = await index.listItems<ChunkMetadata>();
   return items.map((item) => item.metadata);
 }

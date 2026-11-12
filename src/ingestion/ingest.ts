@@ -4,7 +4,7 @@ import path from 'node:path';
 import { config } from '../config.ts';
 import type { ChunkMetadata } from '../types.ts';
 import { embedMany } from '../retrieval/embedder.ts';
-import { ensureIndex, indexedFiles, removeSource, replaceSource, countChunks } from '../retrieval/vectorStore.ts';
+import { ensureIndex, indexedFiles, removeSource, replaceSource, getAllChunks } from '../retrieval/vectorStore.ts';
 import { chunkText } from './chunker.ts';
 import { isSupported, loadFile } from './loaders.ts';
 
@@ -46,7 +46,7 @@ export async function ingestFolder(folderPath: string = config.paths.docs): Prom
     }
   }
 
-  const total = await countChunks();
+  const total = await getAllChunks();
   console.log(
     changed > 0
       ? `Index diperbarui (${total.length} chunks).\n`
